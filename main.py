@@ -1,4 +1,51 @@
 """
+"""
+Job Aggregator Bot: Enhanced Logging Example
+--------------------------------------------
+
+This version demonstrates how to use the new logging function for detailed diagnostics.
+
+Usage of the new logging function:
+- Use `log_job_scrape_start(website)` when starting to scrape a website.
+- Use `log_jobs_found(website, count)` after scraping, before filtering.
+- Use `log_jobs_matched(website, count)` after filtering.
+- Use `log_jobs_rejected(website, rejected_jobs)` where `rejected_jobs` is a list of dicts:
+    Each dict: {"title": ..., "reasons": [reason1, reason2, ...]}
+- For each rejected job, use `log_job_rejection(website, job_title, reasons)` if you want per-job granularity.
+
+Example log output (using the new logging function):
+2025-07-02 10:27:45,117 [INFO] Scraping LinkedIn for jobs...
+2025-07-02 10:27:45,117 [INFO] LinkedIn: 25 jobs found before filtering.
+2025-07-02 10:27:45,117 [INFO] LinkedIn: 3 jobs matched all criteria.
+2025-07-02 10:27:45,117 [INFO] LinkedIn: 22 jobs rejected. Reasons:
+2025-07-02 10:27:45,117 [INFO]   - Job 'Backend Developer' rejected: location mismatch (expected 'Remote', got 'Onsite')
+2025-07-02 10:27:45,117 [INFO]   - Job 'Data Analyst' rejected: salary below minimum (expected >= 60000, got 50000)
+
+Note: Replace previous ad-hoc logging with these functions in your scraping and filtering code.
+
+Example logging function definitions (place in your logging module):
+
+def log_job_scrape_start(website):
+    logging.info(f"Scraping {website} for jobs...")
+
+def log_jobs_found(website, count):
+    logging.info(f"{website}: {count} jobs found before filtering.")
+
+def log_jobs_matched(website, count):
+    logging.info(f"{website}: {count} jobs matched all criteria.")
+
+def log_jobs_rejected(website, rejected_jobs):
+    logging.info(f"{website}: {len(rejected_jobs)} jobs rejected. Reasons:")
+    for job in rejected_jobs:
+        title = job.get("title", "Unknown")
+        for reason in job.get("reasons", []):
+            logging.info(f"  - Job '{title}' rejected: {reason}")
+
+def log_job_rejection(website, job_title, reasons):
+    for reason in reasons:
+        logging.info(f"{website}: Job '{job_title}' rejected: {reason}")
+
+"""
 Automated Job Aggregator and Enrichment Bot
 -------------------------------------------
 Main application entry point.
