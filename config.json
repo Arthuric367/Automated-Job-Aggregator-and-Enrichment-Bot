@@ -1,0 +1,14 @@
+{
+  "job_keywords": [
+    "Project Manager",
+    "Data Scientist"
+  ],
+  "location": "Hong Kong",
+  "salary_range": "40000-60000",
+  "currency": "HKD",
+  "schedule": null,
+  "notification": {
+    "email": null,
+    "slack_webhook": null
+  }
+}
