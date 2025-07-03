@@ -1,5 +1,4 @@
 """
-"""
 Job Aggregator Bot: Enhanced Logging Example
 --------------------------------------------
 
@@ -24,6 +23,7 @@ Example log output (using the new logging function):
 Note: Replace previous ad-hoc logging with these functions in your scraping and filtering code.
 
 Example logging function definitions (place in your logging module):
+"""
 
 def log_job_scrape_start(website):
     logging.info(f"Scraping {website} for jobs...")
@@ -108,20 +108,120 @@ def load_config(config_path: str = CONFIG_FILE) -> Dict[str, Any]:
 
 # --- SCRAPERS (STUBS) ---
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+import time
+
+def get_webdriver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    driver = webdriver.Chrome(options=chrome_options)
+    return driver
+
 def scrape_linkedin(config: Dict[str, Any]) -> List[Dict[str, Any]]:
-    # TODO: Implement actual scraping logic
     logging.info("Scraping LinkedIn for jobs...")
-    return []
+    jobs = []
+    driver = get_webdriver()
+    try:
+        keywords = "+".join(config.get("job_keywords", []))
+        location = config.get("location", "Remote")
+        url = f"https://www.linkedin.com/jobs/search/?keywords={keywords}&location={location}&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0"
+        driver.get(url)
+        time.sleep(3)
+        job_cards = driver.find_elements(By.CSS_SELECTOR, "ul.jobs-search__results-list li")
+        for card in job_cards:
+            try:
+                title_elem = card.find_element(By.CSS_SELECTOR, "h3")
+                company_elem = card.find_element(By.CSS_SELECTOR, "h4")
+                location_elem = card.find_element(By.CSS_SELECTOR, ".job-search-card__location")
+                link_elem = card.find_element(By.CSS_SELECTOR, "a")
+                job = {
+                    "job_title": title_elem.text.strip(),
+                    "company_name": company_elem.text.strip(),
+                    "location": location_elem.text.strip(),
+                    "source_link": link_elem.get_attribute("href"),
+                    "source": "LinkedIn"
+                }
+                jobs.append(job)
+            except NoSuchElementException:
+                continue
+    except Exception as e:
+        logging.error(f"LinkedIn scraping error: {e}")
+    finally:
+        driver.quit()
+    logging.info(f"LinkedIn: {len(jobs)} jobs found before filtering.")
+    return jobs
 
 def scrape_jobsdb(config: Dict[str, Any]) -> List[Dict[str, Any]]:
-    # TODO: Implement actual scraping logic
     logging.info("Scraping JobsDB for jobs...")
-    return []
+    jobs = []
+    driver = get_webdriver()
+    try:
+        keywords = "+".join(config.get("job_keywords", []))
+        location = config.get("location", "")
+        url = f"https://www.jobsdb.com/en-hk/jobs/{keywords}/{location}"
+        driver.get(url)
+        time.sleep(3)
+        job_cards = driver.find_elements(By.CSS_SELECTOR, "div.sx2jih0.zcydq8h")
+        for card in job_cards:
+            try:
+                title_elem = card.find_element(By.CSS_SELECTOR, "a.sx2jih0.zcydq84.zcydq8h._17fduda0._17fduda7._17fduda7._17fduda7")
+                company_elem = card.find_element(By.CSS_SELECTOR, "span.sx2jih0.zcydq84.zcydq8h._17fduda0._17fduda7._17fduda7._17fduda7")
+                location_elem = card.find_element(By.CSS_SELECTOR, "span.sx2jih0.zcydq84.zcydq8h._17fduda0._17fduda7._17fduda7._17fduda7+span")
+                job = {
+                    "job_title": title_elem.text.strip(),
+                    "company_name": company_elem.text.strip(),
+                    "location": location_elem.text.strip(),
+                    "source_link": title_elem.get_attribute("href"),
+                    "source": "JobsDB"
+                }
+                jobs.append(job)
+            except NoSuchElementException:
+                continue
+    except Exception as e:
+        logging.error(f"JobsDB scraping error: {e}")
+    finally:
+        driver.quit()
+    logging.info(f"JobsDB: {len(jobs)} jobs found before filtering.")
+    return jobs
 
 def scrape_glassdoor(config: Dict[str, Any]) -> List[Dict[str, Any]]:
-    # TODO: Implement actual scraping logic
     logging.info("Scraping Glassdoor for jobs...")
-    return []
+    jobs = []
+    driver = get_webdriver()
+    try:
+        keywords = "+".join(config.get("job_keywords", []))
+        location = config.get("location", "")
+        url = f"https://www.glassdoor.com/Job/jobs.htm?sc.keyword={keywords}&locT=C&locId=&locKeyword={location}"
+        driver.get(url)
+        time.sleep(3)
+        job_cards = driver.find_elements(By.CSS_SELECTOR, "li.react-job-listing")
+        for card in job_cards:
+            try:
+                title_elem = card.find_element(By.CSS_SELECTOR, "a.jobLink span")
+                company_elem = card.find_element(By.CSS_SELECTOR, "div.jobHeader a")
+                location_elem = card.find_element(By.CSS_SELECTOR, "span.pr-xxsm")
+                link_elem = card.find_element(By.CSS_SELECTOR, "a.jobLink")
+                job = {
+                    "job_title": title_elem.text.strip(),
+                    "company_name": company_elem.text.strip(),
+                    "location": location_elem.text.strip(),
+                    "source_link": link_elem.get_attribute("href"),
+                    "source": "Glassdoor"
+                }
+                jobs.append(job)
+            except NoSuchElementException:
+                continue
+    except Exception as e:
+        logging.error(f"Glassdoor scraping error: {e}")
+    finally:
+        driver.quit()
+    logging.info(f"Glassdoor: {len(jobs)} jobs found before filtering.")
+    return jobs
 
 # --- ENRICHMENT (STUBS) ---
 
